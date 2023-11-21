@@ -1,0 +1,7 @@
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\bin\Debug\Zenith.exe.config
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\bin\Debug\Zenith.exe
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\bin\Debug\Zenith.pdb
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\obj\Debug\Zenith.csproj.AssemblyReference.cache
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\obj\Debug\Zenith.csproj.CoreCompileInputs.cache
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\obj\Debug\Zenith.exe
+C:\Users\janik\Documents\Visual Studio 2022\Zenith\obj\Debug\Zenith.pdb
