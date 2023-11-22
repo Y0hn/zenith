@@ -6,8 +6,15 @@ namespace Zenith
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
+            Zenith.debugMessLog = true;
+            Zenith.debugErrorLog = true;
+            Zenith.debugSuccessLog = true;
+
+            //string[] s = Zenith.Procesing.ArrayRandomizer(Zenith.Input.Strings());
+            int[] s = Zenith.Procesing.OrderBy(Zenith.Input.Parameters());
+            Zenith.Output.ArrayInLine(s);
 
             Console.ReadKey();
         }
@@ -16,7 +23,7 @@ namespace Zenith
     {
         #region Debug Enables
         public static bool debugMessLog = false;
-        public static bool debugErrorLog = true;
+        public static bool debugErrorLog = false;
         public static bool debugSuccessLog = false;
         public static bool debugWarningLog = false;
         #endregion
@@ -76,9 +83,137 @@ namespace Zenith
 
                 return true;
             }
+            public static char[,] CharArray(int x, int y, char spliter)
+            {
+                char[,] array = new char[x,y];
+
+                for (int i = 0; i < y; i++)
+                {
+                    string vst = Console.ReadLine();
+                    string[] splitedVst = vst.Split(spliter);
+
+                    for (int j = 0; j < x; j++)
+                        array[i, j] = splitedVst[j].ToArray()[0];
+                }
+
+                return array;
+            }
+            public static char[,] CharArray(int x, int y)
+            {
+                char[,] array = new char[x, y];
+
+                for (int i = 0; i < y; i++)
+                {
+                    string vst = Console.ReadLine();
+                    char[] splitedVst = vst.ToCharArray();
+
+                    for (int j = 0; j < x; j++)
+                        array[i, j] = splitedVst[j];
+                }
+
+                return array;
+            }
+            public static int[] Parameters(int limeter = -1, char spliter = ' ')
+            {
+                string vst = Console.ReadLine();
+                try
+                {
+                    string[] numbers = vst.Trim().Split(spliter);
+
+                    if (limeter == -1)
+                        limeter = numbers.Length;
+
+                    int[] result = new int[limeter];
+
+                    for (int i = 0; i < result.Length; i++)
+                    {
+                        result[i] = int.Parse(numbers[i].Trim());
+                        DebugLog.Message("Parameters", "sucsfully added " + numbers[i]);
+                    }
+                    DebugLog.Success("Parameters entered: " + vst);
+                    return result;
+                }
+                catch 
+                { 
+                    DebugLog.Error("Parameters failed to [Parse] value to [INTs]: " + vst);
+                    return null;
+                }
+            }
+            public static string[] Strings(char spliter = ' ')
+            {
+                return Console.ReadLine().Split(spliter);
+            }
+            public static int Intiger()
+            {
+                string s = Console.ReadLine();
+                try
+                { return int.Parse(s); }
+                catch
+                {
+                    DebugLog.Error("Unable to parse: {" + s + "} to int");
+                    return 0; 
+                }                
+            }
         }
         public static class Procesing
         {
+            public static int[] OrderBy(int[] original, bool desc = false)
+            {
+                int[] result = new int[original.Length];
+                List<int> list = original.ToList();
+
+                for (int i = 0; i < result.Length; i++)
+                {
+                    int change;
+
+                    if (desc)
+                        change = list.Max();
+                    else
+                        change = list.Min();
+
+                    result[i] = change;
+                    list.RemoveAt(list.IndexOf(change));
+                }
+                DebugLog.Success("Ordred descending = " + desc);
+                return result;
+            }
+            public static string[] ArrayInvertor(string[] original)
+            {
+                int until = (original.Length - 1) / 2;
+                for (int i = 0, j = original.Length - 1; i < until; i++, j--)
+                {
+                    string temp = original[i];
+                    original[i] = original[j];
+                    original[j] = temp;
+                    DebugLog.Message("ArrayInvertor", $"Switched strings: {original[i]} <=> {original[j]}\n\t[i,j] = [{i},{j}]");
+                }
+                return original;
+            }
+            public static int[] ArrayInvertor(int[] original)
+            {
+                if (original == null) 
+                    return null;
+                try
+                {
+                    if (original.Length <= 1)
+                        return original;
+
+                    int until = (original.Length - 1) / 2;
+                    for (int i = 0, j = original.Length - 1; i < until; i++, j--)
+                    {
+                        int temp = original[i];
+                        original[i] = original[j];
+                        original[j] = temp;
+                        DebugLog.Message("ArrayInvertor", $"Switched ints: {original[i]} <=> {original[j]}\n\t[i,j] = [{i},{j}]");
+                    }
+                    return original;
+                }
+                catch
+                {
+                    DebugLog.Error("Array cannot be inverted! ");
+                    return null; 
+                }
+            }
             public static int CountChar(string input, char ch)
             {
                 int ret = 0;
@@ -89,6 +224,49 @@ namespace Zenith
                         ret++;
 
                 return ret;
+            }
+            public static string[] ArrayRandomizer(string[] original)
+            {
+                List<int> used = new List<int>();
+                Random r = new Random();
+                string[] result = new string[original.Length];
+                int i = 0;
+
+                while (used.Count < original.Length)
+                {
+                    int j = r.Next(0, original.Length);
+                    if (!used.Contains(j))
+                    {
+                        result[j] = original[i];
+                        used.Add(j);
+                        DebugLog.Message("ArrayRand(String)", $"Places switched {original[i]}[{i}] <=> {result[j]}[{j}]");
+                        i++;
+                    }
+                }
+                DebugLog.Success("String field was randomized");
+                return result;
+            }
+            public static int[] ArrayRandomizer(int[] original)
+            {
+                List<int> used = new List<int>();
+                Random r = new Random();
+                int[] result = new int[original.Length];
+                int i = 0;
+
+                while (used.Count < original.Length)
+                {
+                    int j = r.Next(0, original.Length);
+                    if (!used.Contains(j))
+                    {
+                        result[j] = original[i];
+                        used.Add(j);
+                        DebugLog.Message("ArrayRand(String)", $"Places switched {original[i]}[{i}] <=> {result[j]}[{j}]");
+                        i++;
+                    }
+                }
+
+                DebugLog.Success("Itiger field was randomized");
+                return result;
             }
         }
         public static class Output
@@ -103,6 +281,23 @@ namespace Zenith
                 {
                     Console.WriteLine(caseFalse);
                 }
+            }
+            public static void ArrayInLine(string[] output, string between = " ")
+            {
+                foreach (string o in output) 
+                { 
+                    Console.Write(o + between);
+                }
+                Console.WriteLine();
+            }            
+            public static void ArrayInLine(int[] output, string between = " ")
+            {
+                if (output != null)
+                    foreach (int o in output) 
+                    { 
+                        Console.Write(o + between);
+                    }
+                Console.WriteLine();
             }
         }
         public class Vector2
