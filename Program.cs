@@ -11,10 +11,26 @@ namespace Zenith
             Zenith.debugMessLog = true;
             Zenith.debugErrorLog = true;
             Zenith.debugSuccessLog = true;
+            Zenith.debugWarningLog = true;
 
-            //string[] s = Zenith.Procesing.ArrayRandomizer(Zenith.Input.Strings());
-            int[] s = Zenith.Procesing.OrderBy(Zenith.Input.Parameters());
-            Zenith.Output.ArrayInLine(s);
+            int pocet = Zenith.Input.Intiger();
+            Zenith.LineInts tricka = new Zenith.LineInts(Zenith.Input.Parameters(pocet));
+
+            int[] distc = tricka.GetDistinct();
+
+            int[] maxes = { 0, 0};
+
+            for (int i = 0; i < distc.Length;  i++) 
+            {
+                int max = Zenith.Procesing.HighestNearCount(tricka.IndexsOf(distc[i]));
+
+                if      (max > maxes[1])
+                    maxes[1] = max;
+                else if (max > maxes[0])
+                    maxes[0] = max;
+            }
+
+            Console.WriteLine(maxes[0] + maxes[1]);
 
             Console.ReadKey();
         }
@@ -57,7 +73,20 @@ namespace Zenith
 
             { -1, "NONE" },
         };
-        
+        public static readonly Dictionary<int, char> Numbers = new Dictionary<int, char>()
+        {
+            { 0, '0' },
+            { 1, '1' },
+            { 2, '2' },
+            { 3, '3' },
+            { 4, '4' },
+            { 5, '5' },
+            { 6, '6' },
+            { 7, '7' },
+            { 8, '8' },
+            { 9, '9' },
+        };
+
         #endregion
 
         public static class Input
@@ -85,7 +114,7 @@ namespace Zenith
             }
             public static char[,] CharArray(int x, int y, char spliter)
             {
-                char[,] array = new char[x,y];
+                char[,] array = new char[x, y];
 
                 for (int i = 0; i < y; i++)
                 {
@@ -93,7 +122,7 @@ namespace Zenith
                     string[] splitedVst = vst.Split(spliter);
 
                     for (int j = 0; j < x; j++)
-                        array[i, j] = splitedVst[j].ToArray()[0];
+                        array[j, i] = splitedVst[j].ToArray()[0];
                 }
 
                 return array;
@@ -108,12 +137,14 @@ namespace Zenith
                     char[] splitedVst = vst.ToCharArray();
 
                     for (int j = 0; j < x; j++)
-                        array[i, j] = splitedVst[j];
+                        array[j, i] = splitedVst[j];
+
+                    DebugLog.Message("CharArray", $"Added new line to array: {vst} from [0,{i}] to [{x - 1},{i}]");
                 }
 
                 return array;
             }
-            public static int[] Parameters(int limeter = -1, char spliter = ' ')
+            public static int[] Parameters(int limeter = -1, int modifier = 0, char spliter = ' ')
             {
                 string vst = Console.ReadLine();
                 try
@@ -127,21 +158,67 @@ namespace Zenith
 
                     for (int i = 0; i < result.Length; i++)
                     {
-                        result[i] = int.Parse(numbers[i].Trim());
-                        DebugLog.Message("Parameters", "sucsfully added " + numbers[i]);
+                        result[i] = int.Parse(numbers[i].Trim()) + modifier;
+                        DebugLog.Message("Parameters", "sucsfully added " + numbers[i] + " modified by: " + modifier);
                     }
                     DebugLog.Success("Parameters entered: " + vst);
                     return result;
                 }
-                catch 
-                { 
+                catch
+                {
                     DebugLog.Error("Parameters failed to [Parse] value to [INTs]: " + vst);
                     return null;
                 }
             }
+            public static int[,] MultiParam(int limitVert, int limitHoriz = -1, char spliter = ' ')
+            {
+                int[,] input = null;
+
+                if (limitHoriz > 0)
+                    input = new int[limitHoriz,limitVert];
+
+                for (int y = 0; y < limitVert; y++)
+                {
+                    int[] temp = Parameters(limitHoriz, spliter);
+
+                    if (limitHoriz < 0)
+                        limitHoriz = temp.Length;
+
+                    for (int x = 0; x < limitHoriz; x++)
+                    {
+                        input[x,y] = temp[x];
+                    }
+                }
+
+                return input;
+            }
             public static string[] Strings(char spliter = ' ')
             {
                 return Console.ReadLine().Split(spliter);
+            }
+            public static char[] Chars(char spliter = ' ')
+            {
+                string input = Console.ReadLine();
+                string[] vst = input.Split(spliter);
+
+                List<char> ch = new List<char>();
+
+                foreach (string s in vst)
+                {
+                    ch.Add(s[0]);
+                    DebugLog.Message("Chars", $"{s[0]} added to array from {s} from {input}");
+                }
+                char[] result = ch.ToArray();
+
+                string debug = "";
+                foreach (char res in result)
+                {
+                    debug += res.ToString() + spliter.ToString();
+                }
+
+                DebugLog.Success("Input recieved: " + debug);
+
+                return result;
             }
             public static int Intiger()
             {
@@ -268,6 +345,106 @@ namespace Zenith
                 DebugLog.Success("Itiger field was randomized");
                 return result;
             }
+            public static int GetMaxInRangeOfArray(int[] original, int start, int lenght)
+            {
+                int max = int.MinValue;
+
+                for (int i = start; i < lenght; i++)
+                {
+                    if (original.Length - 1 > i)
+                    {
+                        if (original[i] > max)
+                            max = original[i];
+                    }
+                    else
+                        DebugLog.Error($"Index {i} outside of bounds {original.Length-1} of array");
+                }
+
+                return max;
+            }
+            public static bool TryGetMaxInRangeOfArray(int[] original, int start, int lenght, out int max)
+            {
+                max = int.MinValue;
+
+                if (start > original.Length - 1)
+                {
+                    DebugLog.Warning($"Start {start} is out of bounds [0] <=> [{original.Length - 1}]");
+                    return false;
+                }
+
+                for (int i = start; i < start + lenght; i++)
+                {
+                    if (i < original.Length)
+                    {
+                        if (original[i] > max)
+                        {
+                            max = original[i];
+                        }
+                    }
+                    else
+                    {
+                        DebugLog.Warning($"Index {i} outside of bounds {original.Length - 1} of array");
+                        return false;
+                    }
+                }              
+                
+                DebugLog.Message("TryGetMaxInRangeOfArray", $"{max} is max in range from {start} to {start + lenght - 1}");
+                
+                return true;
+            }
+            public static int[] MultiplyEveryElse(int[] original)
+            {
+                int[] result = new int[original.Length];
+
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i] = 1;
+                    for (int j = 0; j < original.Length; j++)
+                    {
+                        if (i == j)
+                            continue;
+                        else
+                        {
+                            result[i] *= original[j];
+                        }
+                    }
+                }
+                return result;
+            }
+            public static int HighestNearCount(int[] indexes)
+            {
+                int tempMax = 1;
+                int maxNear = 1;
+                int last = indexes[0];
+
+                indexes = OrderBy(indexes);
+
+                for (int i = 1; i <= indexes.Length; i++)
+                {
+                    if (i < indexes.Length)
+                    {
+                        if (last + 1 == indexes[i])
+                            tempMax++;
+                        else
+                        {
+                            DebugLog.Message("HighestNearCount", $"{last} + 1 != {indexes[i]}");
+                            if (tempMax > maxNear)
+                                maxNear = tempMax;
+                            tempMax = 0;
+                        }
+                        last = indexes[i];
+                    }
+                    else if (tempMax > maxNear)
+                        maxNear = tempMax;
+                }
+                string debug = "";
+                foreach (int i in indexes)
+                {
+                    debug += i + " ";
+                }
+                DebugLog.Message("HighestNearCount", $"From indexes: {debug} MaxNear = {maxNear}");
+                return maxNear;
+            }
         }
         public static class Output
         {
@@ -292,12 +469,35 @@ namespace Zenith
             }            
             public static void ArrayInLine(int[] output, string between = " ")
             {
+                string outist = "";
+
                 if (output != null)
-                    foreach (int o in output) 
-                    { 
-                        Console.Write(o + between);
+                    for (int i = 0; i < output.Length; i++) 
+                    {
+                        outist += output[i];
+
+                        if (i < output.Length -1)
+                            outist += between;
                     }
-                Console.WriteLine();
+
+                Console.WriteLine(outist);
+            }
+            public static void ArrayInLiner(int[,] output, string between = " ", string onLineEnd = "\n")
+            {
+                string outist = "";
+
+                for (int y = 0; y < output.GetLength(1); y++) 
+                {
+                    for (int x = 0; x < output.GetLength(0); x++)
+                    {
+                        outist += output[y, x];
+                        if (x < output.GetLength(0) - 1)
+                            outist += between;
+                    }
+                    outist += onLineEnd;
+                }
+
+                Console.Write(outist);
             }
         }
         public class Vector2
@@ -332,6 +532,7 @@ namespace Zenith
             public CharArray(char[,] ch)
             {
                 pole = ch;
+                DebugLog.Success($"Created new CharArray {ToString()}");
             }
             public override string ToString()
             {
@@ -340,7 +541,50 @@ namespace Zenith
                     s += c;
                 return s;
             }
+            public string ToVericalString(string between = "")
+            {
+                string s = "";
+                for (int y = 0; y < pole.GetLength(1); y++)
+                {
+                    for (int x = 0; x < pole.GetLength(0); x++)
+                    {
+                        s += pole[x, y];
 
+                        if (x < pole.GetLength(0) - 1)
+                            s += between;
+                    }
+                    s += "\n";
+                }
+                return s;
+            }
+            public int GetLeght(int axis = -1)
+            {
+                if (axis == -1)
+                    return pole.Length;
+                else
+                    return pole.GetLength(axis);
+            }
+            public bool Replace(char original, char newOrg)
+            {
+                bool result = false;
+                for (int y = 0; y < pole.GetLength(1); y++) 
+                { 
+                    for (int x = 0; x < pole.GetLength(0); x++)
+                    {
+                        if (pole[x, y].Equals(original))
+                        {
+                            pole[x,y] = newOrg;
+                            DebugLog.Message("Replace", $"Charakter {original} replaced with {newOrg} at [{x},{y}]");
+                            result = true;
+                        }
+                        else
+                        {
+                            DebugLog.Message("Replace", $"On [{x},{y}] {original} != {pole[x, y]}");
+                        }
+                    }
+                }
+                return result;
+            }
             public bool Find4(string s, bool diagonal)
             {
                 char[] c = s.ToCharArray();
@@ -525,6 +769,48 @@ namespace Zenith
                 DebugLog.Message("CheckInDirection", $"Start position: [{oldX},{oldY}]\n\tChecked direction: {ReversedDirections[dir]}\n\tOn the edge: {!border}\n\tDoes not contain: {ch}\n\tActual position [{x},{y}]");
 
                 return false;
+            }
+        }
+        public class LineInts
+        {
+            int[] ints;
+            public LineInts(int[] newInts) 
+            { 
+                ints = newInts;
+            }
+
+            public int[] IndexsOf(int i)
+            {
+                List<int> result = new List<int>();
+
+                for (int j = 0; j < ints.Length; j++) 
+                { 
+                    if (ints[j] == i)
+                        result.Add(j);
+                }
+
+                string debug = "";
+                foreach (int r in result)
+                    debug += r + " ";
+
+                DebugLog.Message("IndexsOf", $"Searched for: {i} Found indexes: " + debug);
+
+                return result.ToArray();
+            }
+            public int[] GetDistinct()
+            {
+                List<int> unique = new List<int>();
+
+                foreach (int i in ints)
+                    if (!unique.Contains(i))
+                        unique.Add(i);
+
+                string debug = "";
+                foreach (int i in unique)
+                    debug += i + " ";
+
+                DebugLog.Message("GetDistinct", debug);
+                return unique.ToArray();
             }
         }
         private static class DebugLog
